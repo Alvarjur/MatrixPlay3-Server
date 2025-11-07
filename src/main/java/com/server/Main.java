@@ -106,8 +106,7 @@ public class Main extends WebSocketServer {
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         log("New client connected");
-        //salutation(conn.);
-        conn.send("Hola");
+        broadcast("Hola");
         
     }
 
