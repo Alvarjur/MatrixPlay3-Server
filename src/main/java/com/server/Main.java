@@ -203,10 +203,10 @@ public class Main extends WebSocketServer {
 
                     broadcastExcept(null, sendAllClients()); 
 
-                    //if (clients.snapshot().size() == 2) {
-                    //    log("Two players connected, starting countdown");
-                    //    ControllerCountdown.start(3);
-                    //}
+                    if (clientsData.values().size() == 2) {
+                        log("Two players connected, starting countdown");
+                        ControllerCountdown.start(3);
+                    }
                     break;
 
                 case T_CLIENTS_LIST:
