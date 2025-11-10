@@ -11,7 +11,7 @@ import javafx.util.Duration;
 public class Main extends Application {
     public static UtilsWS wsClient;
 
-    public static String clientName = "";
+    public static String clientName = "desktop_" + (int)(Math.random() * 1000);
 
  
     public static void main(String[] args) {
@@ -37,7 +37,8 @@ public class Main extends Application {
             
             // Generar instancia de wsClient con la URI registrada
             UtilsWS.resetSharedInstance(); // Asegura que si falla un intento de conexión (URI incorrecta), luego puede hacer otro intento correcto
-            wsClient = UtilsWS.getSharedInstance("ws://" + "localhost" + ":" + "3000");
+            //wsClient = UtilsWS.getSharedInstance("ws://localhost:3000");
+            wsClient = UtilsWS.getSharedInstance("wss://matrixplay3.ieti.site:443");
 
             wsClient.onOpen((response) -> { Platform.runLater(() -> { wsOpen(response); }); });
             wsClient.onMessage((response) -> { Platform.runLater(() -> { wsMessage(response); }); });
@@ -47,6 +48,7 @@ public class Main extends Application {
 
             pauseDuring(100, () -> {
                 askConfiguration();
+                // askCountdown();
             });
             
         });
@@ -59,6 +61,12 @@ public class Main extends Application {
     public static void askConfiguration() {
         JSONObject json = new JSONObject();
         json.put("type", "configuration");
+        wsClient.safeSend(json.toString());
+    }
+
+    public static void askCountdown() {
+        JSONObject json = new JSONObject();
+        json.put("type", "countdown");
         wsClient.safeSend(json.toString());
     }
 
@@ -98,8 +106,13 @@ public class Main extends Application {
 
             // Comprobar tipo de respuesta
             String type = msgObj.getString("type");
+            System.out.println("Received message of type: " + type);
+            System.out.println("Message content: " + msgObj.toString(2));
             switch (type) {
-
+                
+                default:
+                    System.out.println("Unknown message type: " + type);
+                    break;
             }
         });
     }

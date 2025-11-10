@@ -29,6 +29,14 @@ public class Main extends WebSocketServer {
     /** Port per defecte on escolta el servidor. */
     public static final int DEFAULT_PORT = 3000;
 
+    public static ClientRegistry clients;
+
+    public ControllerCountdown controllerCountdown = new ControllerCountdown(this);
+
+    public static double res = 576;
+    public static double playerWidth = 4 * 9;
+    public static double playerHeight = 20 * 9;
+
     private static final String K_TYPE = "type";
     private static final String K_MESSAGE = "message";
     private static final String K_ORIGIN = "origin";
@@ -39,6 +47,7 @@ public class Main extends WebSocketServer {
 
     // Tipus de missatges
     private static final String T_SALUTATION = "salutation";
+    private static final String T_REGISTER = "register";
     private static final String T_CLIENTS_LIST = "clientsList";
     private static final String T_CONFIGURATION = "configuration";
     private static final String T_COUNTDOWN = "countdown";
@@ -106,10 +115,13 @@ public class Main extends WebSocketServer {
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         log("New client connected");
-        //salutation(conn.);
-        conn.send("Hola");
+        sendInitialPos();
+        broadcast("Hola");
+        
         
     }
+
+    
 
     // private void sendClientsListToAll() {
     //     JSONArray list = clients.currentAvaliblePlayersNames();
@@ -138,10 +150,14 @@ public class Main extends WebSocketServer {
 
             switch (type) {
                 
-                case T_SALUTATION:
-                    // Salutation
+                case T_REGISTER:
+                    clients.add(conn, json.getString("clientName"));
+                    log("Client registered: " + json.getString("clientName"));
 
-                    
+                    if (clients.snapshot().size() == 2) {
+                        log("Two players connected, starting countdown");
+                        ControllerCountdown.start(3);
+                    }
                     break;
 
                 case T_CLIENTS_LIST:
@@ -167,6 +183,7 @@ public class Main extends WebSocketServer {
 
                     // Crea el objeto JSON (opcional)
                     JSONObject configJson = new JSONObject(jsonContent);
+                    configJson.put("type", T_CONFIGURATION);
 
                     // Envía el JSON (ejemplo)
                     conn.send(configJson.toString());
@@ -175,6 +192,8 @@ public class Main extends WebSocketServer {
 
                 case T_COUNTDOWN:
                     // Countdown
+                    System.out.println("Starting countdown from 3 seconds");
+                    ControllerCountdown.start(3);
 
                     break;
 
@@ -247,19 +266,29 @@ public class Main extends WebSocketServer {
      */
     public static void main(String[] args) {
         Main server = new Main(new InetSocketAddress(DEFAULT_PORT));
+        clients = new ClientRegistry();
         server.start();
+    }
+
+    public void sendInitialPos() {
+        JSONObject json = new JSONObject();
+        json.put(K_TYPE, T_INITIAL_POSITION);
+        json.put("p1", "27 " + String.valueOf(res/2 - playerHeight));
+        json.put("p2", String.valueOf(res - 27 - playerWidth) + " " + String.valueOf(res/2 - playerHeight));
+        broadcast(json.toString());
+
     }
 
     public static void log(String message) {
         System.out.println(message);
     }
 
-    public static void salutation() {
-        String payload = new JSONObject()
+    public void salutation() {
+        JSONObject payload = new JSONObject()
                         .put("type", "salutation")
-                        .put("message", "Hola")
-                        .toString();
-        //sendSafe(client, payload);
+                        .put("message", "Hola");
+        
+        broadcast(payload.toString());
     }
 
 
