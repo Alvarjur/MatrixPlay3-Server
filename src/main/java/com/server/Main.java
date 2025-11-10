@@ -3,12 +3,18 @@ package com.server;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import org.java_websocket.WebSocket;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
+import org.json.JSONArray;
 import org.json.JSONObject;
+
+import com.shared.ClientData;
 
 
 /**
@@ -30,6 +36,7 @@ public class Main extends WebSocketServer {
     public static final int DEFAULT_PORT = 3000;
 
     public static ClientRegistry clients;
+    public static Map<String, ClientData> clientsData = new HashMap<>();
 
     public ControllerCountdown controllerCountdown = new ControllerCountdown(this);
 
@@ -44,6 +51,7 @@ public class Main extends WebSocketServer {
     private static final String K_ID = "id";
     private static final String K_LIST = "list";
     private static final String K_CLIENT_NAME = "clientName";
+    private static final String K_CLIENT_TYPE = "clientType";
 
     // Tipus de missatges
     private static final String T_SALUTATION = "salutation";
@@ -115,29 +123,60 @@ public class Main extends WebSocketServer {
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         log("New client connected");
-        sendInitialPos();
-        broadcast("Hola");
-        
-        
+        salutation();
     }
 
-    
+    /**
+     * Broadcast a message to all clients except the sender.
+     * 
+     * @param sender
+     * @param payload
+     */
+    private void broadcastExcept(WebSocket sender, String payload) {
+        for (Map.Entry<WebSocket, String> e : clients.snapshot().entrySet()) {
+            WebSocket conn = e.getKey();
+            if (!clientsData.containsKey(e.getValue()))
+                continue;
+            if (!Objects.equals(conn, sender)) {
+                sendSafe(conn, payload);
+                log("Send Clients to " + clients.nameBySocket(conn));
+            }
+        }
+    }    
 
-    // private void sendClientsListToAll() {
-    //     JSONArray list = clients.currentAvaliblePlayersNames();
-    //     for (Map.Entry<WebSocket, String> e : clients.snapshot().entrySet()) {
-    //         JSONObject rst = msg(T_CLIENTS);
-    //         put(rst, K_ID, e.getValue());
-    //         put(rst, K_LIST, list);
-    //         sendSafe(e.getKey(), rst.toString());
-    //     }
-    // }
+    //private void sendClientsListToAll() {
+    //    JSONArray list = clients.currentAvaliblePlayersNames();
+    //    for (Map.Entry<WebSocket, String> e : clients.snapshot().entrySet()) {
+    //        JSONObject rst = msg(T_CLIENTS_LIST);
+    //        put(rst, K_ID, e.getValue());
+    //        put(rst, K_LIST, list);
+    //        sendSafe(e.getKey(), rst.toString());
+    //        log("ClientsList send to " + e.getKey());
+    //    }
+    //}
+
+    private String sendAllClients() {
+        JSONObject response = msg(T_CLIENTS_LIST);
+        JSONArray clientsDataArray = new JSONArray();
+
+        for (ClientData cd : clientsData.values()) {
+            JSONObject clientData = new JSONObject();
+            clientData.put("clientName", cd.name);
+            clientData.put("clientType", cd.clientType);
+            clientsDataArray.put(clientData);
+        }
+
+        response.put(T_CLIENTS_LIST, clientsDataArray);
+
+        return response.toString();
+    }
 
     /** Elimina el client del registre i notifica la llista actualitzada. */
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
+        clients.remove(conn);
+        clientsData.remove(clients.nameBySocket(conn));
         log("Client disconnected");
-
     }
 
     /***** Procesa el mensaje recibido y actúa según el tipo de mensaje. *****/
@@ -151,10 +190,20 @@ public class Main extends WebSocketServer {
             switch (type) {
                 
                 case T_REGISTER:
-                    clients.add(conn, json.getString("clientName"));
-                    log("Client registered: " + json.getString("clientName"));
+                    String name = json.getString(K_CLIENT_NAME);
+                    String clientType = json.getString(K_CLIENT_TYPE);
 
-                    if (clients.snapshot().size() == 2) {
+                    clients.add(conn, name);
+
+                    if (!clientType.equals("Raspberry")) {
+                        ClientData clientData = new ClientData(name, clientType);
+                        clientsData.put(name, clientData);
+                        log("Client registered: " + name);
+                    }
+
+                    broadcastExcept(null, sendAllClients()); 
+
+                    if (clientsData.values().size() == 2) {
                         log("Two players connected, starting countdown");
                         ControllerCountdown.start(3);
                     }
@@ -186,8 +235,8 @@ public class Main extends WebSocketServer {
                     configJson.put("type", T_CONFIGURATION);
 
                     // Envía el JSON (ejemplo)
-                    conn.send(configJson.toString());
-                
+                    sendSafe(conn, configJson.toString());
+
                     break;
 
                 case T_COUNTDOWN:
