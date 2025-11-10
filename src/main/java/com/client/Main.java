@@ -11,7 +11,7 @@ import javafx.util.Duration;
 public class Main extends Application {
     public static UtilsWS wsClient;
 
-    public static String clientName = "client_" + (int)(Math.random() * 1000);
+    public static String clientName = "desktop_" + (int)(Math.random() * 1000);
 
  
     public static void main(String[] args) {
@@ -37,7 +37,8 @@ public class Main extends Application {
             
             // Generar instancia de wsClient con la URI registrada
             UtilsWS.resetSharedInstance(); // Asegura que si falla un intento de conexión (URI incorrecta), luego puede hacer otro intento correcto
-            wsClient = UtilsWS.getSharedInstance("ws://" + "localhost" + ":" + "3000");
+            //wsClient = UtilsWS.getSharedInstance("ws://localhost:3000");
+            wsClient = UtilsWS.getSharedInstance("wss://matrixplay3.ieti.site:443");
 
             wsClient.onOpen((response) -> { Platform.runLater(() -> { wsOpen(response); }); });
             wsClient.onMessage((response) -> { Platform.runLater(() -> { wsMessage(response); }); });
