@@ -46,10 +46,11 @@ public class Main extends Application {
     
             wsClient.connect(); // Hay que hacer la conexión después de definir los handler para mensaje y error, sino utiliza el error definido en UtilsWS
 
-            pauseDuring(100, () -> {
-                askConfiguration();
-                // askCountdown();
-            });
+            // This breaks the connection !!!!
+            // pauseDuring(100, () -> {
+            //     askConfiguration();
+            //     // askCountdown();
+            // });
             
         });
     }
@@ -62,6 +63,7 @@ public class Main extends Application {
         JSONObject json = new JSONObject();
         json.put("type", "configuration");
         wsClient.safeSend(json.toString());
+        
     }
 
     public static void askCountdown() {
@@ -107,9 +109,23 @@ public class Main extends Application {
 
             // Comprobar tipo de respuesta
             String type = msgObj.getString("type");
-            System.out.println("Received message of type: " + type);
-            System.out.println("Message content: " + msgObj.toString(2));
+            // System.out.println("Received message of type: " + type);
+            // System.out.println("Message content: " + msgObj.toString(2));
             switch (type) {
+                case "salutation":
+                    String serverMessage = msgObj.getString("message");
+                    System.out.println("Server says: " + serverMessage);
+                    break;
+
+                case "countdown":
+                    int seconds = msgObj.getInt("seconds");
+                    System.out.println("Countdown: " + seconds);
+                    // Aquí puedes actualizar la interfaz de usuario con el valor del countdown
+                    break;
+                case "configuration":
+                    // Procesar configuración recibida
+                    System.out.println("Configuration received from server.");
+                    break;
                 
                 default:
                     System.out.println("Unknown message type: " + type);

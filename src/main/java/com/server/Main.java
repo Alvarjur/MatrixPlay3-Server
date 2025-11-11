@@ -203,10 +203,10 @@ public class Main extends WebSocketServer {
 
                     broadcastExcept(null, sendAllClients()); 
 
-                    if (clientsData.values().size() == 2) {
-                        log("Two players connected, starting countdown");
-                        ControllerCountdown.start(3);
-                    }
+                    // if (clientsData.values().size() == 2) {
+                    //     log("Two players connected, starting countdown");
+                    //     ControllerCountdown.start(3);
+                    // }
                     break;
 
                 case T_CLIENTS_LIST:
@@ -317,6 +317,13 @@ public class Main extends WebSocketServer {
         Main server = new Main(new InetSocketAddress(DEFAULT_PORT));
         clients = new ClientRegistry();
         server.start();
+    }
+
+    public void sendCountdown(int seconds) {
+        JSONObject json = new JSONObject();
+        json.put(K_TYPE, T_COUNTDOWN);
+        json.put("seconds", seconds);
+        broadcast(json.toString());
     }
 
     public void sendInitialPos() {
