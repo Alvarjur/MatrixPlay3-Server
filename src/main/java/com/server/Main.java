@@ -122,7 +122,7 @@ public class Main extends WebSocketServer {
             try {
                 for (int i = 3; i >= 0; i--) {
 
-                    JSONObject json = msg(K_TYPE);
+                    JSONObject json = msg(T_COUNTDOWN);
                     json.put("value", i);
                     sendBroadCast(json.toString());
                     log("Sending Countdown to players; " + json.toString());
@@ -132,7 +132,7 @@ public class Main extends WebSocketServer {
                     }
 
                     if (i > 0)
-                        Thread.sleep(1000); // Aumentado a 1 segundo para mejor visibilidad
+                        Thread.sleep(1500);
                 }
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
@@ -197,6 +197,7 @@ public class Main extends WebSocketServer {
 
         for (Map.Entry<WebSocket, String> e : clients.snapshot().entrySet()) {
             sendSafe(e.getKey(), payload);
+            log("Countdown send to " + e.getValue());
         }
 
     }
@@ -204,8 +205,8 @@ public class Main extends WebSocketServer {
     /** Elimina el client del registre i notifica la llista actualitzada. */
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        clients.remove(conn);
         clientsData.remove(clients.nameBySocket(conn));
+        clients.remove(conn);
         log("Client disconnected");
     }
 
