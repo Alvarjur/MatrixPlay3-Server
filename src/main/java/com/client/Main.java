@@ -83,6 +83,7 @@ public class Main extends Application {
 
             JSONObject json = new JSONObject();
             json.put("type", "register");
+            json.put("clientType", "desktop");
             json.put("clientName", clientName);
             wsClient.safeSend(json.toString());
         });
