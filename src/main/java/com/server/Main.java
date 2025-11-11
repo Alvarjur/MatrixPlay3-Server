@@ -116,7 +116,29 @@ public class Main extends WebSocketServer {
         }
     }
 
-    
+    public void startCountdown() {
+
+        new Thread(() -> {
+            try {
+                for (int i = 3; i >= 0; i--) {
+
+                    JSONObject json = msg(K_TYPE);
+                    json.put("value", i);
+                    sendBroadCast(json.toString());
+                    log("Sending Countdown to players; " + json.toString());
+
+                    if (i == 0) {
+                        sendInitialPos();
+                    }
+
+                    if (i > 0)
+                        Thread.sleep(1000); // Aumentado a 1 segundo para mejor visibilidad
+                }
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
+        }, "CountdownThread").start();
+    }    
 
     // ----------------- WebSocketServer overrides -----------------
 
@@ -171,6 +193,14 @@ public class Main extends WebSocketServer {
         return response.toString();
     }
 
+    public static void sendBroadCast(String payload) {
+
+        for (Map.Entry<WebSocket, String> e : clients.snapshot().entrySet()) {
+            sendSafe(e.getKey(), payload);
+        }
+
+    }
+
     /** Elimina el client del registre i notifica la llista actualitzada. */
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
@@ -203,9 +233,10 @@ public class Main extends WebSocketServer {
 
                     broadcastExcept(null, sendAllClients()); 
 
-                    if (clientsData.values().size() == 2) {
+                    if (clientsData.size() == 2) {
                         log("Two players connected, starting countdown");
-                        ControllerCountdown.start(3);
+                        //ControllerCountdown.start(3);
+                        startCountdown();
                     }
                     break;
 
@@ -324,8 +355,7 @@ public class Main extends WebSocketServer {
         json.put(K_TYPE, T_INITIAL_POSITION);
         json.put("p1", "27 " + String.valueOf(res/2 - playerHeight));
         json.put("p2", String.valueOf(res - 27 - playerWidth) + " " + String.valueOf(res/2 - playerHeight));
-        broadcast(json.toString());
-
+        sendBroadCast(json.toString());
     }
 
     public static void log(String message) {
