@@ -11,7 +11,7 @@
 - Java with JDK21.
 - Maven
 - WebSockets
-- Sqlite 
+- SQLite 
 
 ## 🚀 Execute proyect (on your local machine)
 1. Clone GitHub repository in a Raspberry Pi or similar with am extern LED screen attached.
