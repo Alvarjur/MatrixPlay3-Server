@@ -118,7 +118,7 @@ public class Main extends Application {
                     break;
 
                 case "countdown":
-                    int seconds = msgObj.getInt("seconds");
+                    int seconds = msgObj.getInt("value");
                     System.out.println("Countdown: " + seconds);
                     // Aquí puedes actualizar la interfaz de usuario con el valor del countdown
                     break;
@@ -126,9 +126,17 @@ public class Main extends Application {
                     // Procesar configuración recibida
                     System.out.println("Configuration received from server.");
                     break;
+
+                case "movement":
+                    String player = msgObj.getString("playerName");
+                    String direction = msgObj.getString("message");
+                    System.out.println("Player " + player + " moved " + direction);
+                    // Aquí puedes actualizar la posición del jugador en la interfaz de usuario
+                    break;
                 
                 default:
                     System.out.println("Unknown message type: " + type);
+                    System.out.println(msgObj.toString(2));
                     break;
             }
         });
