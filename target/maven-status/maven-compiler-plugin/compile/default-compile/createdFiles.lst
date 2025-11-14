@@ -1,10 +1,2 @@
-com/client/Main.class
-com/server/LoggerService.class
-com/server/ControllerCountdown$1.class
-com/server/Main.class
-com/server/ControllerCountdown.class
-com/shared/ClientData.class
 com/client/LogDataBase.class
-com/client/UtilsWS$1.class
-com/client/UtilsWS.class
-com/server/ClientRegistry.class
+com/server/LoggerService.class
