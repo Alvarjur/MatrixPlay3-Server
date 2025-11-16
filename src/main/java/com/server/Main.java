@@ -230,6 +230,8 @@ public class Main extends WebSocketServer {
                         ClientData clientData = new ClientData(name, clientType);
                         clientsData.put(name, clientData);
                         log("Client registered: " + name);
+
+                        LoggerService.saveLog(name, clientType, "has connected to the server."); //agrego para 
                     }
 
                     broadcastExcept(null, sendAllClients()); 
@@ -279,7 +281,13 @@ public class Main extends WebSocketServer {
                     break;
 
                 case T_INITIAL_POSITION:
+
                     // Initial position
+                    //guardamos la posicion en la base de datos
+                    String player = json.getString("player");
+                    String pos = json.getString("position");
+                    String pType = clientsData.get(player).clientType;
+                    LoggerService.saveLog(player, pType, "Posición inicial: " + pos);
 
                     break;
 
@@ -346,6 +354,9 @@ public class Main extends WebSocketServer {
      * @param args arguments de línia d'ordres (no utilitzats)
      */
     public static void main(String[] args) {
+
+        LogDataBase.createTable(); //creo la tabla
+        
         Main server = new Main(new InetSocketAddress(DEFAULT_PORT));
         clients = new ClientRegistry();
         server.start();
