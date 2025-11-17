@@ -130,7 +130,7 @@ public class Main extends Application {
                 case "movement":
                     String player = msgObj.getString("playerName");
                     String direction = msgObj.getString("message");
-                    System.out.println("Player " + player + " moved " + direction);
+                    System.out.println("Player " + player + " moved this way: " + direction);
                     // Aquí puedes actualizar la posición del jugador en la interfaz de usuario
                     break;
                 
