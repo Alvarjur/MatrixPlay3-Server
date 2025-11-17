@@ -128,7 +128,15 @@ public class Main extends WebSocketServer {
                     log("Sending Countdown to players; " + json.toString());
 
                     if (i == 0) {
+                        
+                         
                         sendInitialPos();
+                        String name = json.getString(K_CLIENT_NAME);
+                        String clientType = json.getString(K_CLIENT_TYPE);
+                        String pos = json.getString(T_INITIAL_POSITION);
+                        LoggerService.saveLog(name, clientType, pos);  
+                        
+
                     }
 
                     if (i > 0)
@@ -138,6 +146,7 @@ public class Main extends WebSocketServer {
                 Thread.currentThread().interrupt();
             }
         }, "CountdownThread").start();
+
     }    
 
     // ----------------- WebSocketServer overrides -----------------
@@ -218,6 +227,9 @@ public class Main extends WebSocketServer {
             JSONObject json = new JSONObject(message);
             String type = json.getString("type");
 
+
+            
+
             switch (type) {
                 
                 case T_REGISTER:
@@ -230,8 +242,7 @@ public class Main extends WebSocketServer {
                         ClientData clientData = new ClientData(name, clientType);
                         clientsData.put(name, clientData);
                         log("Client registered: " + name);
-
-                        LoggerService.saveLog(name, clientType, "has connected to the server."); //agrego para 
+                        
                     }
 
                     broadcastExcept(null, sendAllClients()); 
@@ -241,6 +252,7 @@ public class Main extends WebSocketServer {
                         //ControllerCountdown.start(3);
                         startCountdown();
                     }
+                    LoggerService.saveLog(name, clientType, "has connected to the server."); 
                     break;
 
                 case T_CLIENTS_LIST:
@@ -277,18 +289,12 @@ public class Main extends WebSocketServer {
                     // Countdown
                     System.out.println("Starting countdown from 3 seconds");
                     ControllerCountdown.start(3);
+                    
 
                     break;
 
-                case T_INITIAL_POSITION:
-
-                    // Initial position
-                    //guardamos la posicion en la base de datos
-                    String player = json.getString("player");
-                    String pos = json.getString("position");
-                    String pType = clientsData.get(player).clientType;
-                    LoggerService.saveLog(player, pType, "Posición inicial: " + pos);
-
+                case T_INITIAL_POSITION:// revisar position 
+                    
                     break;
 
                 case T_SERVER_DATA:
