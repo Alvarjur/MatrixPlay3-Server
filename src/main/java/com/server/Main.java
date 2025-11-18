@@ -3,6 +3,7 @@ package com.server;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -445,9 +446,13 @@ public class Main extends WebSocketServer {
         String p1pos = "27 " + (res / 2 - playerHeight);
         String p2pos = (res - 27 - playerWidth) + " " + (res / 2 - playerHeight);
 
-        //obtengo el tipo de cliente con el nombre del player ya asignado arriba en registered 
-        String p1Type = clientsData.get(player1).clientType;
-        String p2Type = clientsData.get(player2).clientType;
+        //obtengo el tipo de cliente con el nombre del player ya asignado arriba en registered
+        ArrayList<ClientData> cds = new ArrayList<>();
+        for (ClientData cd : clientsData.values()) {
+            cds.add(cd);
+        }
+        String p1Type = cds.get(0).clientType;
+        String p2Type = cds.get(1).clientType;
 
         LoggerService.saveLog(player1, p1Type, "Initial position; " + p1pos);
         LoggerService.saveLog(player2, p2Type, "Initial position; " + p2pos);
