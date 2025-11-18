@@ -226,9 +226,6 @@ public class Main extends WebSocketServer {
             JSONObject json = new JSONObject(message);
             String type = json.getString("type");
 
-
-            
-
             switch (type) {
                 
                 case T_REGISTER:
@@ -291,6 +288,8 @@ public class Main extends WebSocketServer {
 
                 case T_COUNTDOWN:
                     // Countdown
+                    LoggerService.saveLog(player1, clientsData.get(player1).clientType, "Go to countdown.");
+                    LoggerService.saveLog(player2, clientsData.get(player2).clientType, "Go to countdown.");
                     System.out.println("Starting countdown from 3 seconds");
                     ControllerCountdown.start(3);
                     
