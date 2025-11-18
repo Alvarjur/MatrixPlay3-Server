@@ -42,8 +42,11 @@ public class Main extends WebSocketServer {
 
     public static double res = 576;
     public static double playerWidth = 4 * 9;
-    public static double playerHeight = 20 * 9;
+    public static double playerHeight = 16 * 9;
+    public static double ballRadius = 3 * 9;
     public static double SPEED = 0.1f;
+
+    public Ball ball = new Ball(res/2, res/2, 0, 0);
 
     private static final String K_TYPE = "type";
     private static final String K_MESSAGE = "message";
@@ -406,9 +409,13 @@ public class Main extends WebSocketServer {
         JSONObject json = new JSONObject();
         json.put(K_TYPE, T_INITIAL_POSITION);
         // json.put("p1", "27 " + String.valueOf(res/2 - playerHeight));
+        json.put("playersSize", playerWidth / res + " " + playerHeight / res);
         json.put("p1", getNormalizedPosition(27, res/2)[0] + " " + getNormalizedPosition(27, res/2)[1]);
         // json.put("p2", String.valueOf(res - 27 - playerWidth) + " " + String.valueOf(res/2 - playerHeight));
         json.put("p2", getNormalizedPosition(res - 27, res/2)[0] + " " + getNormalizedPosition(res - 27, res/2)[1]);
+
+        json.put("ball", getNormalizedPosition(res/2, res/2)[0] + " " + getNormalizedPosition(res/2, res/2)[1]);
+        json.put("ballRadius", (double)ballRadius / res);
         sendBroadCast(json.toString());
     }
 
@@ -435,4 +442,18 @@ public class Main extends WebSocketServer {
     }
 
 
+}
+
+class Ball {
+    double posX;
+    double posY;
+    double velX;
+    double velY;
+
+    public Ball(double posX, double posY, double velX, double velY) {
+        this.posX = posX;
+        this.posY = posY;
+        this.velX = velX;
+        this.velY = velY;
+    }
 }
