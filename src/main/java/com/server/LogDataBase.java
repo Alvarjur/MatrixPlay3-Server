@@ -7,7 +7,7 @@ import java.sql.Statement;
 //Clase donde creamos la tabla
 
 public class LogDataBase {
-    public static void createTable() {// no creo que haga falta pero lo tego porsi acaso 
+    public static void createTable() {
         String url = "jdbc:sqlite:pong_logs.db";
         String sql = """
                 CREATE TABLE IF NOT EXISTS game_logs(id INTEGER PRIMARY KEY AUTOINCREMENT,

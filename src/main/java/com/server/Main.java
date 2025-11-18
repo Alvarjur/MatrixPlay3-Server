@@ -66,6 +66,11 @@ public class Main extends WebSocketServer {
     private static final String T_CHANGE_BANNER = "changeBanner";
 
 
+    //creo los player null para cuando se registren se les asigne 
+    public static String player1 = null;
+    public static String player2 = null;
+
+
     /**
      * Crea un servidor WebSocket que escolta a l'adreça indicada.
      *
@@ -128,13 +133,7 @@ public class Main extends WebSocketServer {
                     log("Sending Countdown to players; " + json.toString());
 
                     if (i == 0) {
-                        
-                         
-                        sendInitialPos();
-                        String name = json.getString(K_CLIENT_NAME);
-                        String clientType = json.getString(K_CLIENT_TYPE);
-                        String pos = json.getString(T_INITIAL_POSITION);
-                        LoggerService.saveLog(name, clientType, pos);  
+                        sendInitialPos(); 
                         
 
                     }
@@ -242,6 +241,11 @@ public class Main extends WebSocketServer {
                         ClientData clientData = new ClientData(name, clientType);
                         clientsData.put(name, clientData);
                         log("Client registered: " + name);
+                        if (player1 == null) {
+                            player1 = name;
+                        } else if (player2 == null) {
+                            player2 = name;
+                        }
                         
                     }
 
@@ -368,11 +372,34 @@ public class Main extends WebSocketServer {
         server.start();
     }
 
-    public void sendInitialPos() {
+    /*public void sendInitialPos() {
         JSONObject json = new JSONObject();
         json.put(K_TYPE, T_INITIAL_POSITION);
-        json.put("p1", "27 " + String.valueOf(res/2 - playerHeight));
-        json.put("p2", String.valueOf(res - 27 - playerWidth) + " " + String.valueOf(res/2 - playerHeight));
+        json.put("p1", "27 " + String.valueOf(res / 2 - playerHeight));
+        json.put("p2", String.valueOf(res - 27 - playerWidth) + " " + String.valueOf(res / 2 - playerHeight));
+
+        sendBroadCast(json.toString());
+    }*/
+    
+
+    public void sendInitialPos() {
+
+        // coloco en variables las posiciones para poder guardar en base de datos 
+        String p1pos = "27 " + (res / 2 - playerHeight);
+        String p2pos = (res - 27 - playerWidth) + " " + (res / 2 - playerHeight);
+
+        //obtengo el tipo de cliente con el nombre del player ya asignado arriba en registered 
+        String p1Type = clientsData.get(player1).clientType;
+        String p2Type = clientsData.get(player2).clientType;
+
+        LoggerService.saveLog(player1, p1Type, "Initial position; " + p1pos);
+        LoggerService.saveLog(player2, p2Type, "Initial position; " + p2pos);
+
+        JSONObject json = new JSONObject();
+        json.put(K_TYPE, T_INITIAL_POSITION);
+        json.put("p1", p1pos);
+        json.put("p2", p2pos);
+
         sendBroadCast(json.toString());
     }
 
