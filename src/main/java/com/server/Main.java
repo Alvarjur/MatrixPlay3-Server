@@ -269,6 +269,7 @@ public class Main extends WebSocketServer {
                     // Configuration
                     // Send configuration json with url of connection
                     System.out.println("Sending configuration to client");
+                    clients.add(conn, "Raspberri");
 
                     InputStream inputStream = Main.class
                     .getClassLoader()
