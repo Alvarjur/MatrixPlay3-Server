@@ -309,6 +309,18 @@ public class Main extends WebSocketServer {
 
                     sendPlayersPos(player);
                     break;
+
+                case "movement_android":
+                    String pl = json.getString("clientName");
+                    float amount = Float.parseFloat(json.getString("message"));
+                    System.out.println("Player " + pl + " moved " + amount);
+                    // Aquí puedes actualizar la posición del jugador en la interfaz de usuario
+                    amount *= res;
+                    
+                    clientsData.get(pl).posY = Math.round(getDenormalizedPosition(1, getNormalizedPosition(1, (clientsData.get(pl).posY - SPEED*amount))[1])[1] * 100)/100;
+
+                    sendPlayersPos(pl);
+                    break;
                 
 
                 case T_INITIAL_POSITION:
