@@ -67,6 +67,11 @@ public class Main extends WebSocketServer {
     private static final String T_CHANGE_BANNER = "changeBanner";
 
 
+    //creo los player null para cuando se registren se les asigne 
+    public static String player1 = null;
+    public static String player2 = null;
+
+
     /**
      * Crea un servidor WebSocket que escolta a l'adreça indicada.
      *
@@ -148,7 +153,9 @@ public class Main extends WebSocketServer {
                     log("Sending Countdown to players; " + json.toString());
 
                     if (i == 0) {
-                        sendInitialPos();
+                        sendInitialPos(); 
+                        
+
                     }
 
                     if (i > 0)
@@ -158,6 +165,7 @@ public class Main extends WebSocketServer {
                 Thread.currentThread().interrupt();
             }
         }, "CountdownThread").start();
+
     }    
 
     // ----------------- WebSocketServer overrides -----------------
@@ -227,6 +235,9 @@ public class Main extends WebSocketServer {
             JSONObject json = new JSONObject(message);
             String type = json.getString("type");
 
+
+            
+
             switch (type) {
                 
                 case T_REGISTER:
@@ -239,6 +250,12 @@ public class Main extends WebSocketServer {
                         ClientData clientData = new ClientData(name, clientType);
                         clientsData.put(name, clientData);
                         log("Client registered: " + name);
+                        if (player1 == null) {
+                            player1 = name;
+                        } else if (player2 == null) {
+                            player2 = name;
+                        }
+                        
                     }
 
                     broadcastExcept(null, sendAllClients()); 
@@ -248,6 +265,7 @@ public class Main extends WebSocketServer {
                         //ControllerCountdown.start(3);
                         startCountdown();
                     }
+                    LoggerService.saveLog(name, clientType, "has connected to the server."); 
                     break;
 
                 case T_CLIENTS_LIST:
@@ -285,6 +303,7 @@ public class Main extends WebSocketServer {
                     // Countdown
                     System.out.println("Starting countdown from 3 seconds");
                     ControllerCountdown.start(3);
+                    
 
                     break;
 
@@ -391,6 +410,9 @@ public class Main extends WebSocketServer {
      * @param args arguments de línia d'ordres (no utilitzats)
      */
     public static void main(String[] args) {
+
+        LogDataBase.createTable(); //creo la tabla
+        
         Main server = new Main(new InetSocketAddress(DEFAULT_PORT));
         clients = new ClientRegistry();
         server.start();
@@ -415,6 +437,18 @@ public class Main extends WebSocketServer {
         return new double[] {x, y};
     }
     public void sendInitialPos() {
+
+        // coloco en variables las posiciones para poder guardar en base de datos 
+        String p1pos = "27 " + (res / 2 - playerHeight);
+        String p2pos = (res - 27 - playerWidth) + " " + (res / 2 - playerHeight);
+
+        //obtengo el tipo de cliente con el nombre del player ya asignado arriba en registered 
+        String p1Type = clientsData.get(player1).clientType;
+        String p2Type = clientsData.get(player2).clientType;
+
+        LoggerService.saveLog(player1, p1Type, "Initial position; " + p1pos);
+        LoggerService.saveLog(player2, p2Type, "Initial position; " + p2pos);
+
         JSONObject json = new JSONObject();
         json.put(K_TYPE, T_INITIAL_POSITION);
         // json.put("p1", "27 " + String.valueOf(res/2 - playerHeight));
