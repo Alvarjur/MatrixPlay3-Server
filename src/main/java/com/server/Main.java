@@ -125,12 +125,15 @@ public class Main extends WebSocketServer {
 
         new Thread(() -> {
             try {
+                LoggerService.saveLog(player1, clientsData.get(player1).clientType, "Go to countdown.");
+                LoggerService.saveLog(player2, clientsData.get(player2).clientType, "Go to countdown.");
                 for (int i = 3; i >= 0; i--) {
 
                     JSONObject json = msg(T_COUNTDOWN);
                     json.put("value", i);
                     sendBroadCast(json.toString());
                     log("Sending Countdown to players; " + json.toString());
+                    
 
                     if (i == 0) {
                         sendInitialPos(); 
@@ -143,6 +146,7 @@ public class Main extends WebSocketServer {
                 }
             } catch (InterruptedException ie) {
                 Thread.currentThread().interrupt();
+                
             }
         }, "CountdownThread").start();
 
@@ -288,8 +292,7 @@ public class Main extends WebSocketServer {
 
                 case T_COUNTDOWN:
                     // Countdown
-                    LoggerService.saveLog(player1, clientsData.get(player1).clientType, "Go to countdown.");
-                    LoggerService.saveLog(player2, clientsData.get(player2).clientType, "Go to countdown.");
+                   
                     System.out.println("Starting countdown from 3 seconds");
                     ControllerCountdown.start(3);
                     
@@ -312,7 +315,6 @@ public class Main extends WebSocketServer {
 
                 case T_RANKING:
                     // Ranking
-
                     break;
                     
                 case T_CHANGE_BANNER:
