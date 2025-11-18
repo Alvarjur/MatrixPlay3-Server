@@ -127,6 +127,7 @@ public class Main extends WebSocketServer {
             try {
                 LoggerService.saveLog(player1, clientsData.get(player1).clientType, "Go to countdown.");
                 LoggerService.saveLog(player2, clientsData.get(player2).clientType, "Go to countdown.");
+                
                 for (int i = 3; i >= 0; i--) {
 
                     JSONObject json = msg(T_COUNTDOWN);
@@ -258,6 +259,7 @@ public class Main extends WebSocketServer {
                         startCountdown();
                     }
                     LoggerService.saveLog(name, clientType, "has connected to the server."); 
+                    log("Saving in BD" +name+ clientType+"Has conected to server.");
                     break;
 
                 case T_CLIENTS_LIST:
@@ -396,6 +398,8 @@ public class Main extends WebSocketServer {
 
         LoggerService.saveLog(player1, p1Type, "Initial position; " + p1pos);
         LoggerService.saveLog(player2, p2Type, "Initial position; " + p2pos);
+        log("Initial position de "+player1+"Agregado a la BD");
+        log("Initial position de "+player2+"Agregado a la BD");
 
         JSONObject json = new JSONObject();
         json.put(K_TYPE, T_INITIAL_POSITION);
