@@ -5,6 +5,7 @@ com/server/LogDataBase.class
 com/server/Main.class
 com/server/ControllerCountdown.class
 com/shared/ClientData.class
+com/server/Ball.class
 com/client/UtilsWS$1.class
 com/client/UtilsWS.class
 com/server/ClientRegistry.class

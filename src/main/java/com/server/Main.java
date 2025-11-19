@@ -71,9 +71,6 @@ public class Main extends WebSocketServer {
     private static final String T_CHANGE_BANNER = "changeBanner";
 
 
-    //creo los player null para cuando se registren se les asigne 
-    public static String player1 = null;
-    public static String player2 = null;
 
 
     /**
@@ -130,8 +127,25 @@ public class Main extends WebSocketServer {
 
         new Thread(() -> {
             try {
-                LoggerService.saveLog(player1, clientsData.get(player1).clientType, "Go to countdown.");
-                LoggerService.saveLog(player2, clientsData.get(player2).clientType, "Go to countdown.");
+
+                ArrayList<ClientData> players = new ArrayList<>();
+                for (ClientData cd : clientsData.values()) {
+                    if (!cd.clientType.equals("Raspberry")) {
+                        players.add(cd);
+                    }
+                }
+
+                // Comprobación de seguridad
+                if (players.size() < 2) {
+                    log("ERROR: No hay 2 jugadores válidos para iniciar el countdown.");
+                    return;
+                }
+
+                ClientData p1 = players.get(0);
+                ClientData p2 = players.get(1);
+
+                LoggerService.saveLog(p1.name, p1.clientType, "Go to countdown.");
+                LoggerService.saveLog(p2.name, p2.clientType, "Go to countdown.");
                 
                 for (int i = 3; i >= 0; i--) {
                     // Este es el que se usa
@@ -256,11 +270,6 @@ public class Main extends WebSocketServer {
                         ClientData clientData = new ClientData(name, clientType);
                         clientsData.put(name, clientData);
                         log("Client registered: " + name);
-                        if (player1 == null) {
-                            player1 = name;
-                        } else if (player2 == null) {
-                            player2 = name;
-                        }
                         
                     }
 
@@ -272,7 +281,7 @@ public class Main extends WebSocketServer {
                         startCountdown();
                     }
                     LoggerService.saveLog(name, clientType, "has connected to the server."); 
-                    log("Saving in BD" +name+ clientType+"Has conected to server.");
+                    log(name+" "+ clientType+ "Saving in BD");
                     break;
 
                 case T_CLIENTS_LIST:
@@ -400,7 +409,16 @@ public class Main extends WebSocketServer {
     @Override
     public void onError(WebSocket conn, Exception ex) {
         ex.printStackTrace();
-        conn.send("error");
+
+        if (conn != null) {
+            try {
+                conn.send("error: " + ex.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            log("Error occurred, but connection is null. Exception: " + ex.getMessage());
+        }
     }
 
     
@@ -450,17 +468,21 @@ public class Main extends WebSocketServer {
         String p2pos = (res - 27 - playerWidth) + " " + (res / 2 - playerHeight);
 
         //obtengo el tipo de cliente con el nombre del player ya asignado arriba en registered
-        ArrayList<ClientData> cds = new ArrayList<>();
+        ArrayList<ClientData> players = new ArrayList<>();
         for (ClientData cd : clientsData.values()) {
-            cds.add(cd);
+            if (!cd.clientType.equals("Raspberry")) {
+                players.add(cd);
+            }
         }
-        String p1Type = cds.get(0).clientType;
-        String p2Type = cds.get(1).clientType;
+        String player1 = players.get(0).name;
+        String player2 = players.get(1).name;
+        String p1Type = players.get(0).clientType;
+        String p2Type = players.get(1).clientType;
 
         LoggerService.saveLog(player1, p1Type, "Initial position; " + p1pos);
         LoggerService.saveLog(player2, p2Type, "Initial position; " + p2pos);
-        log("Initial position de "+player1+"Agregado a la BD");
-        log("Initial position de "+player2+"Agregado a la BD");
+        log(" Initial position: " + p1pos + " " + player1 + "saving a la BD");
+        log(" Initial position: " + p2pos + " " + player2 + "saving a la BD");
 
         JSONObject json = new JSONObject();
         json.put(K_TYPE, T_INITIAL_POSITION);

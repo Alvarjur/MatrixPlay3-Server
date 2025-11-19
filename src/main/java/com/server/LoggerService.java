@@ -21,7 +21,8 @@ public class LoggerService {
             ps.setString(2, clientType);
             ps.setString(3, action);
             ps.executeUpdate();
-            System.out.println("Log guardado: " + player + " ( "+clientType+ " )  -> " + action);
+            System.out.println("Log guardado: " + player + " ( " + clientType + " )  -> " + action);
+        
 
         } catch (Exception e) {
             e.printStackTrace();
