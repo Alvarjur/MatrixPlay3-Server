@@ -11,7 +11,7 @@ public class ClientData {
     public ClientData(String name, String clientType) {
         this.name = name;
         this.clientType = clientType;
-        this.posY = 0;
+        this.posY = 576/2f;
     }
 
     public ClientData(String name, String clientType, double posY) {

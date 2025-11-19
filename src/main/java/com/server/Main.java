@@ -3,6 +3,7 @@ package com.server;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -42,7 +43,11 @@ public class Main extends WebSocketServer {
 
     public static double res = 576;
     public static double playerWidth = 4 * 9;
-    public static double playerHeight = 20 * 9;
+    public static double playerHeight = 16 * 9;
+    public static double ballRadius = 3 * 9;
+    public static double SPEED = 0.1f;
+
+    public Ball ball = new Ball(res/2, res/2, 0, 0);
 
     private static final String K_TYPE = "type";
     private static final String K_MESSAGE = "message";
@@ -129,9 +134,28 @@ public class Main extends WebSocketServer {
                 LoggerService.saveLog(player2, clientsData.get(player2).clientType, "Go to countdown.");
                 
                 for (int i = 3; i >= 0; i--) {
-
+                    // Este es el que se usa
                     JSONObject json = msg(T_COUNTDOWN);
                     json.put("value", i);
+
+                    String player1Name = "";
+                    for (ClientData cd : clientsData.values()) {
+                        log("Player in countdown: " + cd.name);
+                        if(!cd.clientType.equals("Raspberry")) {
+                            log("Skipping Raspberry client in countdown");
+                            
+                            if (player1Name.isEmpty()) {
+                                player1Name = cd.name;
+                            } else {
+                                json.put("player1Name", player1Name);
+                                json.put("player2Name", cd.name);
+                                break;
+                            }
+
+                        }
+                        
+                    }
+                    
                     sendBroadCast(json.toString());
                     log("Sending Countdown to players; " + json.toString());
                     
@@ -178,17 +202,6 @@ public class Main extends WebSocketServer {
             }
         }
     }    
-
-    //private void sendClientsListToAll() {
-    //    JSONArray list = clients.currentAvaliblePlayersNames();
-    //    for (Map.Entry<WebSocket, String> e : clients.snapshot().entrySet()) {
-    //        JSONObject rst = msg(T_CLIENTS_LIST);
-    //        put(rst, K_ID, e.getValue());
-    //        put(rst, K_LIST, list);
-    //        sendSafe(e.getKey(), rst.toString());
-    //        log("ClientsList send to " + e.getKey());
-    //    }
-    //}
 
     private String sendAllClients() {
         JSONObject response = msg(T_CLIENTS_LIST);
@@ -302,8 +315,44 @@ public class Main extends WebSocketServer {
 
                     break;
 
-                case T_INITIAL_POSITION:// revisar position 
+                case "movement":
+                    String player = json.getString("clientName");
+                    String direction = json.getString("message");
+                    System.out.println("Player " + player + " moved " + direction);
+                    // Aquí puedes actualizar la posición del jugador en la interfaz de usuario
                     
+                    if (direction.equals("up")) { 
+                        if (!(getNormalizedPosition(0, clientsData.get(player).posY - playerHeight/2 - SPEED*res)[1] < -0.1)) {
+                            clientsData.get(player).posY = Math.round(getDenormalizedPosition(1, getNormalizedPosition(1, (clientsData.get(player).posY - SPEED*res))[1])[1] * 100)/100;
+                        }
+                         
+                    }
+                    else if (direction.equals("down")) { 
+                        if (!(getNormalizedPosition(0, clientsData.get(player).posY + playerHeight/2 + SPEED*res)[1] > 1.1)) {
+                            clientsData.get(player).posY = Math.round(getDenormalizedPosition(1, getNormalizedPosition(1, (clientsData.get(player).posY + SPEED*res))[1])[1] * 100) /100; 
+
+                        }
+                    }
+
+                    sendPlayersPos(player);
+                    break;
+
+                case "movement_android":
+                    String pl = json.getString("clientName");
+                    float amount = Float.parseFloat(json.getString("message"));
+                    System.out.println("Player " + pl + " moved " + amount);
+                    // Aquí puedes actualizar la posición del jugador en la interfaz de usuario
+                    amount *= res;
+                    
+                    clientsData.get(pl).posY = Math.round(getDenormalizedPosition(1, getNormalizedPosition(1, (clientsData.get(pl).posY - SPEED*amount))[1])[1] * 100)/100;
+
+                    sendPlayersPos(pl);
+                    break;
+                
+
+                case T_INITIAL_POSITION:
+                    // Initial position
+
                     break;
 
                 case T_SERVER_DATA:
@@ -376,25 +425,37 @@ public class Main extends WebSocketServer {
         server.start();
     }
 
-    /*public void sendInitialPos() {
+    public void sendCountdown(int seconds) {
         JSONObject json = new JSONObject();
-        json.put(K_TYPE, T_INITIAL_POSITION);
-        json.put("p1", "27 " + String.valueOf(res / 2 - playerHeight));
-        json.put("p2", String.valueOf(res - 27 - playerWidth) + " " + String.valueOf(res / 2 - playerHeight));
+        json.put(K_TYPE, T_COUNTDOWN);
+        json.put("seconds", seconds);
+        broadcast(json.toString());
+    }
 
-        sendBroadCast(json.toString());
-    }*/
-    
+    public double[] getNormalizedPosition(double x, double y) {
+        double normX = x / res;
+        double normY = y / res;
+        return new double[] {normX, normY};
+    }
 
+    public double[] getDenormalizedPosition(double normX, double normY) {
+        double x = normX * res;
+        double y = normY * res;
+        return new double[] {x, y};
+    }
     public void sendInitialPos() {
 
         // coloco en variables las posiciones para poder guardar en base de datos 
         String p1pos = "27 " + (res / 2 - playerHeight);
         String p2pos = (res - 27 - playerWidth) + " " + (res / 2 - playerHeight);
 
-        //obtengo el tipo de cliente con el nombre del player ya asignado arriba en registered 
-        String p1Type = clientsData.get(player1).clientType;
-        String p2Type = clientsData.get(player2).clientType;
+        //obtengo el tipo de cliente con el nombre del player ya asignado arriba en registered
+        ArrayList<ClientData> cds = new ArrayList<>();
+        for (ClientData cd : clientsData.values()) {
+            cds.add(cd);
+        }
+        String p1Type = cds.get(0).clientType;
+        String p2Type = cds.get(1).clientType;
 
         LoggerService.saveLog(player1, p1Type, "Initial position; " + p1pos);
         LoggerService.saveLog(player2, p2Type, "Initial position; " + p2pos);
@@ -403,8 +464,23 @@ public class Main extends WebSocketServer {
 
         JSONObject json = new JSONObject();
         json.put(K_TYPE, T_INITIAL_POSITION);
-        json.put("p1", p1pos);
-        json.put("p2", p2pos);
+        // json.put("p1", "27 " + String.valueOf(res/2 - playerHeight));
+        json.put("playersSize", playerWidth / res + " " + playerHeight / res);
+        json.put("p1", getNormalizedPosition(27, res/2)[0] + " " + getNormalizedPosition(27, res/2)[1]);
+        // json.put("p2", String.valueOf(res - 27 - playerWidth) + " " + String.valueOf(res/2 - playerHeight));
+        json.put("p2", getNormalizedPosition(res - 27, res/2)[0] + " " + getNormalizedPosition(res - 27, res/2)[1]);
+
+        json.put("ball", getNormalizedPosition(res/2, res/2)[0] + " " + getNormalizedPosition(res/2, res/2)[1]);
+        json.put("ballRadius", (double)ballRadius / res);
+        sendBroadCast(json.toString());
+    }
+
+    public void sendPlayersPos(String playerName) {
+        JSONObject json = new JSONObject();
+        json.put(K_TYPE, "playerPosition");
+        // json.put("p1", "27 " + String.valueOf(res/2 - playerHeight));
+        json.put("playerName", playerName);
+        json.put("position", getNormalizedPosition(27, clientsData.get(playerName).posY)[0] + " " + getNormalizedPosition(27, clientsData.get(playerName).posY)[1]);
 
         sendBroadCast(json.toString());
     }
@@ -422,4 +498,18 @@ public class Main extends WebSocketServer {
     }
 
 
+}
+
+class Ball {
+    double posX;
+    double posY;
+    double velX;
+    double velY;
+
+    public Ball(double posX, double posY, double velX, double velY) {
+        this.posX = posX;
+        this.posY = posY;
+        this.velX = velX;
+        this.velY = velY;
+    }
 }
