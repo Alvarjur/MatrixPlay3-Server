@@ -146,6 +146,7 @@ public class Main extends WebSocketServer {
 
                 LoggerService.saveLog(p1.name, p1.clientType, "Go to countdown.");
                 LoggerService.saveLog(p2.name, p2.clientType, "Go to countdown.");
+                log("[DB] Saving event countdown: "+ "Player 1:"+ p1.name+"|" + "Player 2:"+ p2.name);
                 
                 for (int i = 3; i >= 0; i--) {
                     // Este es el que se usa
@@ -281,7 +282,9 @@ public class Main extends WebSocketServer {
                         startCountdown();
                     }
                     LoggerService.saveLog(name, clientType, "has connected to the server."); 
-                    log(name+" "+ clientType+ "Saving in BD");
+                
+                    log("[DB] Saving event: name=" + name + " clientType=" + clientType);
+
                     break;
 
                 case T_CLIENTS_LIST:
@@ -479,10 +482,10 @@ public class Main extends WebSocketServer {
         String p1Type = players.get(0).clientType;
         String p2Type = players.get(1).clientType;
 
-        LoggerService.saveLog(player1, p1Type, "Initial position; " + p1pos);
-        LoggerService.saveLog(player2, p2Type, "Initial position; " + p2pos);
-        log(" Initial position: " + p1pos + " " + player1 + "saving a la BD");
-        log(" Initial position: " + p2pos + " " + player2 + "saving a la BD");
+        LoggerService.saveLog(player1, p1Type, "Initial position: " + p1pos);
+        LoggerService.saveLog(player2, p2Type, "Initial position:  " + p2pos);
+        log("[DB] Saving initial position: Player= " + player1 + ", Pos= " + p1pos);
+        log("[DB] Saving initial position: Player= " + player2 + ", Pos= " + p2pos);
 
         JSONObject json = new JSONObject();
         json.put(K_TYPE, T_INITIAL_POSITION);
