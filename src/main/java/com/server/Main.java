@@ -16,6 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.shared.ClientData;
+import com.shared.Directions;
 
 
 /**
@@ -45,7 +46,7 @@ public class Main extends WebSocketServer {
     public static double playerWidth = 4 * 9;
     public static double playerHeight = 16 * 9;
     public static double ballRadius = 3 * 9;
-    public static double SPEED = 0.1f;
+    public static double SPEED = 0.5f;
 
     public Ball ball = new Ball(res/2, res/2, 0, 0);
 
@@ -70,7 +71,89 @@ public class Main extends WebSocketServer {
     private static final String T_RANKING = "ranking";
     private static final String T_CHANGE_BANNER = "changeBanner";
 
+    /* Variables per a controlar el moviment de les pales i l'actualització de la UI */
+    private static String[] playersArray = new String[2];
+    private static boolean isPlaying = false;
+    private static boolean player1Desktop = false;
+    private static boolean player2Desktop = false;
 
+    private static Directions player1Direction = Directions.STATIC;
+    private static Directions player2Direction = Directions.STATIC;
+
+    Runnable ctrlUIElements = new Runnable() {
+        @Override
+        public void run() {
+            double deltaTime = 1;
+            long currentTime;
+            long pastTime = System.nanoTime() / 1000;
+            
+            while (isPlaying) {
+                currentTime = System.nanoTime() / 1000;
+                deltaTime = (currentTime - pastTime) / 1000;
+                pastTime = currentTime;
+
+                if (player1Desktop) {
+                    updatePad1(deltaTime);
+                }
+
+                if (player2Desktop) {
+                    updatePad2(deltaTime);
+                }
+
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException ex) {
+                }
+            }
+        }
+        
+    };
+
+    public void updatePad1(double dt) {
+
+        int dir = 0;
+
+        if (player1Direction == Directions.UP) {
+            dir = 1;
+        }
+        else if (player1Direction == Directions.DOWN) {
+            dir = -1;
+        }
+
+        if (player1Direction == Directions.UP) {
+            clientsData.get(playersArray[0]).posY -= SPEED * dt;
+        }
+        else if (player1Direction == Directions.DOWN) {
+            clientsData.get(playersArray[0]).posY += SPEED * dt;
+        }
+
+        if (dir != 0) {
+            sendPlayersPos(playersArray[0]);
+        }  
+    }
+
+    public void updatePad2(double dt) {
+
+        int dir = 0;
+
+        if (player2Direction == Directions.UP) {
+            dir = 1;
+        }
+        else if (player2Direction == Directions.DOWN) {
+            dir = -1;
+        }
+
+        if (player2Direction == Directions.UP) {
+            clientsData.get(playersArray[1]).posY -= SPEED * dt; // Mover hacia arriba
+        }
+        else if (player2Direction == Directions.DOWN) {
+            clientsData.get(playersArray[1]).posY += SPEED * dt; // Mover hacia abajo
+        }
+
+        if (dir != 0) {
+            sendPlayersPos(playersArray[1]);
+        }  
+    }
 
 
     /**
@@ -332,21 +415,29 @@ public class Main extends WebSocketServer {
                     String direction = json.getString("message");
                     System.out.println("Player " + player + " moved " + direction);
                     // Aquí puedes actualizar la posición del jugador en la interfaz de usuario
-                    
-                    if (direction.equals("up")) { 
-                        if (!(getNormalizedPosition(0, clientsData.get(player).posY - playerHeight/2 - SPEED*res)[1] < -0.1)) {
-                            clientsData.get(player).posY = Math.round(getDenormalizedPosition(1, getNormalizedPosition(1, (clientsData.get(player).posY - SPEED*res))[1])[1] * 100)/100;
-                        }
+
+                    Directions dir = Directions.STATIC;
+
+                    // Set direction
+                    if (direction.equals("UP")) { 
+                        dir = Directions.UP;
                          
                     }
-                    else if (direction.equals("down")) { 
-                        if (!(getNormalizedPosition(0, clientsData.get(player).posY + playerHeight/2 + SPEED*res)[1] > 1.1)) {
-                            clientsData.get(player).posY = Math.round(getDenormalizedPosition(1, getNormalizedPosition(1, (clientsData.get(player).posY + SPEED*res))[1])[1] * 100) /100; 
-
-                        }
+                    else if (direction.equals("DOWN")) { 
+                        dir = Directions.DOWN;
                     }
 
-                    sendPlayersPos(player);
+
+                    // Set direction to player
+                    if (player.equals(playersArray[0])) {
+                        player1Desktop = true;
+                        player1Direction = dir;
+                    }
+                    else {
+                        player2Desktop = true;
+                        player2Direction = dir;
+                    }
+
                     break;
 
                 case "movement_android":
@@ -482,8 +573,11 @@ public class Main extends WebSocketServer {
         String p1Type = players.get(0).clientType;
         String p2Type = players.get(1).clientType;
 
-        LoggerService.saveLog(player1, p1Type, "Initial position: " + p1pos);
-        LoggerService.saveLog(player2, p2Type, "Initial position:  " + p2pos);
+        playersArray[0] = player1;
+        playersArray[1] = player2;
+
+        LoggerService.saveLog(player1, p1Type, "Initial position; " + p1pos);
+        LoggerService.saveLog(player2, p2Type, "Initial position; " + p2pos);
         log("[DB] Saving initial position: Player= " + player1 + ", Pos= " + p1pos);
         log("[DB] Saving initial position: Player= " + player2 + ", Pos= " + p2pos);
 
@@ -498,6 +592,9 @@ public class Main extends WebSocketServer {
         json.put("ball", getNormalizedPosition(res/2, res/2)[0] + " " + getNormalizedPosition(res/2, res/2)[1]);
         json.put("ballRadius", (double)ballRadius / res);
         sendBroadCast(json.toString());
+
+        isPlaying = true;
+        new Thread(ctrlUIElements).start();
     }
 
     public void sendPlayersPos(String playerName) {
