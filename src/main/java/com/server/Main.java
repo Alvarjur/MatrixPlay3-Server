@@ -92,6 +92,7 @@ public class Main extends WebSocketServer {
                 deltaTime = (currentTime - pastTime) / 1000;
                 pastTime = currentTime;
 
+                ballMovement();
                 if (player1Desktop) {
                     updatePad1(deltaTime);
                 }
@@ -108,6 +109,94 @@ public class Main extends WebSocketServer {
         }
         
     };
+
+    public void resetBall() {
+        ball.posX = res / 2;
+        ball.posY = Math.random() < 0.5 ? ballRadius : res - ballRadius;
+        ball.velX = 0.5 * (Math.random() < 0.5 ? 1 : -1);
+        ball.velY = 0.5 * (Math.random() < 0.5 ? 1 : -1);
+    }
+    
+    public static double[] ballIntersectsPaddle(
+        double x1, double y1,
+        double x2, double y2,
+        double x3, double y3,
+        double x4, double y4
+    ) {
+        double denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+        if (denom == 0) return null;
+
+        double t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+        double u = ((x1 - x3) * (y1 - y2) - (y1 - y3) * (x1 - x2)) / denom;
+
+        if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+            double ix = x1 + t * (x2 - x1);
+            double iy = y1 + t * (y2 - y1);
+            return new double[]{ix, iy};
+        }
+        return null;
+    }
+
+
+    public void ballMovement() {
+
+    double nextX = ball.posX + ball.velX;
+    double nextY = ball.posY + ball.velY;
+
+    boolean isReset = false;
+
+    // Rebotes con paredes
+    if (nextX <= ballRadius || nextX >= res - ballRadius) {
+        isReset = true;
+        resetBall();
+    }
+    if (nextY <= ballRadius || nextY >= res - ballRadius) {
+        ball.velY = -ball.velY;
+        nextY = ball.posY + ball.velY;
+        // resetBall();
+    }
+
+    // Paddles
+    ArrayList<ClientData> players = new ArrayList<>();
+    for (ClientData cd : clientsData.values()) {
+        if (!cd.clientType.equals("Raspberry")) {
+            players.add(cd);
+        }
+    }
+
+    for (int i = 0; i < players.size(); i++) {
+
+        ClientData player = players.get(i);
+
+        double paddleX = (i == 0) ? 27 + playerWidth : (res - 27 - playerWidth);
+        double paddleTopY = player.posY - playerHeight/2;
+        double paddleBottomY = paddleTopY + playerHeight;
+
+        double[] hit = ballIntersectsPaddle(
+            ball.posX, ball.posY,
+            nextX,     nextY,
+            paddleX, paddleTopY,
+            paddleX, paddleBottomY
+        );
+
+        if (hit != null) {
+            // Rebote horizontal
+            ball.velX = -ball.velX;
+
+            // Ajustar el siguiente frame
+            nextX = ball.posX + ball.velX;
+        }
+    }
+
+    // Aplicar movimiento final
+    if (!isReset) {
+        ball.posX = nextX;
+        ball.posY = nextY;
+    }
+
+    sendBallPos();
+}
 
     public void updatePad1(double dt) {
 
@@ -260,7 +349,7 @@ public class Main extends WebSocketServer {
 
                     if (i == 0) {
                         sendInitialPos(); 
-                        
+                        resetBall();
 
                     }
 
@@ -554,6 +643,14 @@ public class Main extends WebSocketServer {
         double x = normX * res;
         double y = normY * res;
         return new double[] {x, y};
+    }
+
+    public void sendBallPos() {
+        JSONObject json = new JSONObject();
+        json.put(K_TYPE, "ballPosition");
+        json.put("position", getNormalizedPosition(ball.posX, ball.posY)[0] + " " + getNormalizedPosition(ball.posX, ball.posY)[1]);
+
+        sendBroadCast(json.toString());
     }
     public void sendInitialPos() {
 
