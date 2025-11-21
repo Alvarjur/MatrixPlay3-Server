@@ -92,7 +92,7 @@ public class Main extends WebSocketServer {
                 deltaTime = (currentTime - pastTime) / 1000;
                 pastTime = currentTime;
 
-                ballMovement();
+                ballMovement(deltaTime);
                 if (player1Desktop) {
                     updatePad1(deltaTime);
                 }
@@ -139,10 +139,10 @@ public class Main extends WebSocketServer {
     }
 
 
-    public void ballMovement() {
+    public void ballMovement(double dt) {
 
-    double nextX = ball.posX + ball.velX;
-    double nextY = ball.posY + ball.velY;
+    double nextX = ball.posX + ball.velX * dt;
+    double nextY = ball.posY + ball.velY * dt;
 
     boolean isReset = false;
 
