@@ -47,6 +47,7 @@ public class Main extends WebSocketServer {
     public static double playerHeight = 16 * 9;
     public static double ballRadius = 3 * 9;
     public static double SPEED = 0.5f;
+    public final static double ANDROIDSPEED = 0.1f;
 
     public Ball ball = new Ball(res/2, res/2, 0, 0);
 
@@ -79,6 +80,10 @@ public class Main extends WebSocketServer {
 
     private static Directions player1Direction = Directions.STATIC;
     private static Directions player2Direction = Directions.STATIC;
+
+    private final static float PAD_MOVEMENT_PADDING = 0.16f;
+    private final static double PAD_MIN_MOVMENT = res * PAD_MOVEMENT_PADDING;
+    private final static double PAD_MAX_MOVMENT = res * (1 - PAD_MOVEMENT_PADDING);
 
     Runnable ctrlUIElements = new Runnable() {
         @Override
@@ -121,10 +126,12 @@ public class Main extends WebSocketServer {
         }
 
         if (player1Direction == Directions.UP) {
-            clientsData.get(playersArray[0]).posY -= SPEED * dt;
+            double posY = clientsData.get(playersArray[0]).posY - SPEED * dt;
+            clientsData.get(playersArray[0]).posY = Math.clamp(posY, PAD_MIN_MOVMENT, PAD_MAX_MOVMENT);
         }
         else if (player1Direction == Directions.DOWN) {
-            clientsData.get(playersArray[0]).posY += SPEED * dt;
+            double posY = clientsData.get(playersArray[0]).posY + SPEED * dt;
+            clientsData.get(playersArray[0]).posY = Math.clamp(posY, PAD_MIN_MOVMENT, PAD_MAX_MOVMENT);
         }
 
         if (dir != 0) {
@@ -144,10 +151,12 @@ public class Main extends WebSocketServer {
         }
 
         if (player2Direction == Directions.UP) {
-            clientsData.get(playersArray[1]).posY -= SPEED * dt; // Mover hacia arriba
+            double posY = clientsData.get(playersArray[1]).posY - SPEED * dt;
+            clientsData.get(playersArray[1]).posY = Math.clamp(posY, PAD_MIN_MOVMENT, PAD_MAX_MOVMENT);
         }
         else if (player2Direction == Directions.DOWN) {
-            clientsData.get(playersArray[1]).posY += SPEED * dt; // Mover hacia abajo
+            double posY = clientsData.get(playersArray[1]).posY + SPEED * dt;
+            clientsData.get(playersArray[1]).posY = Math.clamp(posY, PAD_MIN_MOVMENT, PAD_MAX_MOVMENT);
         }
 
         if (dir != 0) {
@@ -447,7 +456,8 @@ public class Main extends WebSocketServer {
                     // Aquí puedes actualizar la posición del jugador en la interfaz de usuario
                     amount *= res;
                     
-                    clientsData.get(pl).posY = Math.round(getDenormalizedPosition(1, getNormalizedPosition(1, (clientsData.get(pl).posY - SPEED*amount))[1])[1] * 100)/100;
+                    double posY = Math.round(getDenormalizedPosition(1, getNormalizedPosition(1, (clientsData.get(pl).posY - ANDROIDSPEED*amount))[1])[1] * 100)/100;
+                    clientsData.get(pl).posY = Math.clamp(posY, PAD_MIN_MOVMENT, PAD_MAX_MOVMENT);
 
                     sendPlayersPos(pl);
                     break;
