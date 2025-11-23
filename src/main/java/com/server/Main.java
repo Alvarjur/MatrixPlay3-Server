@@ -48,6 +48,7 @@ public class Main extends WebSocketServer {
     public static double ballRadius = 3 * 9;
     public static double SPEED = 0.5f;
     public final static double ANDROIDSPEED = 0.1f;
+    public final static double BALLSPEED = 0.5f;
 
     public Ball ball = new Ball(res/2, res/2, 0, 0);
 
@@ -84,6 +85,10 @@ public class Main extends WebSocketServer {
     private final static float PAD_MOVEMENT_PADDING = 0.16f;
     private final static double PAD_MIN_MOVMENT = res * PAD_MOVEMENT_PADDING;
     private final static double PAD_MAX_MOVMENT = res * (1 - PAD_MOVEMENT_PADDING);
+
+    private static boolean isBallReset = false;
+    private final static double BALL_RESET_TIME = 2000.0;
+    private static double ballResetTime = 0;
 
     Runnable ctrlUIElements = new Runnable() {
         @Override
@@ -151,9 +156,22 @@ public class Main extends WebSocketServer {
 
     boolean isReset = false;
 
+    if (isBallReset) {
+        ballResetTime += dt;
+
+        if (ballResetTime >= BALL_RESET_TIME) {
+            ballResetTime = 0;
+            isBallReset = false;
+        }
+        else {
+            return;
+        }
+    }
+
     // Rebotes con paredes
     if (nextX <= ballRadius || nextX >= res - ballRadius) {
         isReset = true;
+        isBallReset = true;
         resetBall();
     }
     if (nextY <= ballRadius || nextY >= res - ballRadius) {
