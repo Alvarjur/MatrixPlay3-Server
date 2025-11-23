@@ -198,6 +198,12 @@ public class Main extends WebSocketServer {
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         log("New client connected");
         salutation();
+        // Detectar si es Raspberry y enviar QR si no hay jugadores
+        String clientName = clients.nameBySocket(conn);
+        ClientData cd = clientsData.get(clientName);
+        if (cd != null && cd.clientType.equals("Raspberry")) {
+            sendQRtoRaspberry();
+        }
     }
 
     /**
@@ -249,6 +255,12 @@ public class Main extends WebSocketServer {
         clientsData.remove(clients.nameBySocket(conn));
         clients.remove(conn);
         log("Client disconnected");
+        long playerCount = clientsData.values().stream()
+                .filter(cd -> !cd.clientType.equals("Raspberry"))
+                .count();
+        if (playerCount == 0) {
+            sendQRtoRaspberry();
+        }
     }
 
     /***** Procesa el mensaje recibido y actúa según el tipo de mensaje. *****/
@@ -521,7 +533,56 @@ public class Main extends WebSocketServer {
         
         broadcast(payload.toString());
     }
+    //metodo para llamar clase QR y enviar el QR a la Raspberry
+    public void sendQRtoRaspberry() {
+        long playerCount = clientsData.values().stream()
+                .filter(cd -> !cd.clientType.equals("Raspberry"))
+                .count();
 
+        // Solo enviamos QR si no hay jugadores conectados
+        if (playerCount == 0) {
+            try {
+                String qrText = "https://matrixplay.ieti.site/grup3_apk";
+
+                int[][] qrMatrix = QR.generateQR(qrText, 64);
+                log("QR generado.");
+
+                // Convertir matriz a JSON
+                JSONObject qrJson = new JSONObject();
+                qrJson.put("type", "qrMatrix");
+
+                JSONArray rows = new JSONArray();
+                for (int y = 0; y < 64; y++) {
+                    JSONArray row = new JSONArray();
+                    for (int x = 0; x < 64; x++) {
+                        row.put(qrMatrix[x][y]);
+                    }
+                    rows.put(row);
+                }
+                qrJson.put("matrix", rows);
+
+                String qrPayload = qrJson.toString();
+                // Enviar a la raspberry
+                for (Map.Entry<WebSocket, String> entry : clients.snapshot().entrySet()) {
+                    WebSocket conn = entry.getKey();
+                    String clientName = entry.getValue();
+
+                    if (clientsData.containsKey(clientName) &&
+                            clientsData.get(clientName).clientType.equals("Raspberry")) {
+
+                        sendSafe(conn, qrPayload);
+                        log("QR enviado a Raspberry: " + clientName);
+                    }
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            log("Hay jugadores conectados, no se envía QR.");
+        }
+    }
+    
 
 }
 
