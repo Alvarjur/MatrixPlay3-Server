@@ -173,6 +173,15 @@ public class Main extends WebSocketServer {
         isReset = true;
         isBallReset = true;
         resetBall();
+
+        if (nextX <= ballRadius) {
+            clientsData.get(playersArray[1]).goalScored += 1;
+            sendGoalScored(playersArray[1]);
+        }
+        else {
+            clientsData.get(playersArray[0]).goalScored += 1;
+            sendGoalScored(playersArray[0]);
+        }
     }
     if (nextY <= ballRadius || nextY >= res - ballRadius) {
         ball.velY = -ball.velY;
@@ -728,6 +737,14 @@ public class Main extends WebSocketServer {
         // json.put("p1", "27 " + String.valueOf(res/2 - playerHeight));
         json.put("playerName", playerName);
         json.put("position", getNormalizedPosition(27, clientsData.get(playerName).posY)[0] + " " + getNormalizedPosition(27, clientsData.get(playerName).posY)[1]);
+
+        sendBroadCast(json.toString());
+    }
+
+    public void sendGoalScored(String playerName) {
+        JSONObject json = new JSONObject();
+        json.put(K_TYPE, "goalScored");
+        json.put("playerName", playerName);
 
         sendBroadCast(json.toString());
     }
