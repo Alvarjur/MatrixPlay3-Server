@@ -86,7 +86,7 @@ public class Main extends WebSocketServer {
     private final static double PAD_MIN_MOVMENT = res * PAD_MOVEMENT_PADDING;
     private final static double PAD_MAX_MOVMENT = res * (1 - PAD_MOVEMENT_PADDING);
 
-    private static boolean isBallReset = false;
+    private static boolean isBallReset = true;
     private final static double BALL_RESET_TIME = 2000.0;
     private static double ballResetTime = 0;
 
