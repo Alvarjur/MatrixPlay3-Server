@@ -96,7 +96,9 @@ public class Main extends WebSocketServer {
             double deltaTime = 1;
             long currentTime;
             long pastTime = System.nanoTime() / 1000;
-            
+            resetBall();
+            sendBallPos();
+
             while (isPlaying) {
                 currentTime = System.nanoTime() / 1000;
                 deltaTime = (currentTime - pastTime) / 1000;
