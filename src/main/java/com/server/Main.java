@@ -446,7 +446,6 @@ public class Main extends WebSocketServer {
 
         for (Map.Entry<WebSocket, String> e : clients.snapshot().entrySet()) {
             sendSafe(e.getKey(), payload);
-            log("Countdown send to " + e.getValue());
         }
 
     }
