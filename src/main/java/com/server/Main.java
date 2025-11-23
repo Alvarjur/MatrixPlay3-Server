@@ -123,8 +123,8 @@ public class Main extends WebSocketServer {
     public void resetBall() {
         ball.posX = res / 2;
         ball.posY = Math.random() < 0.5 ? ballRadius : res - ballRadius;
-        ball.velX = 0.5 * (Math.random() < 0.5 ? 1 : -1);
-        ball.velY = 0.5 * (Math.random() < 0.5 ? 1 : -1);
+        ball.velX = 0.5 * (Math.random() < 0.5 ? BALLSPEED : -1 * BALLSPEED);
+        ball.velY = 0.5 * (Math.random() < 0.5 ? BALLSPEED : -1 * BALLSPEED);
     }
     
     public static double[] ballIntersectsPaddle(
