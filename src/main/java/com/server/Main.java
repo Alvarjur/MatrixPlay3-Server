@@ -48,6 +48,7 @@ public class Main extends WebSocketServer {
     public static double ballRadius = 3 * 9;
     public static double SPEED = 0.5f;
     public final static double ANDROIDSPEED = 0.1f;
+    public final static double BALLSPEED = 0.5f;
 
     public Ball ball = new Ball(res/2, res/2, 0, 0);
 
@@ -85,6 +86,10 @@ public class Main extends WebSocketServer {
     private final static double PAD_MIN_MOVMENT = res * PAD_MOVEMENT_PADDING;
     private final static double PAD_MAX_MOVMENT = res * (1 - PAD_MOVEMENT_PADDING);
 
+    private static boolean isBallReset = true;
+    private final static double BALL_RESET_TIME = 2000.0;
+    private static double ballResetTime = 0;
+
     Runnable ctrlUIElements = new Runnable() {
         @Override
         public void run() {
@@ -118,8 +123,8 @@ public class Main extends WebSocketServer {
     public void resetBall() {
         ball.posX = res / 2;
         ball.posY = Math.random() < 0.5 ? ballRadius : res - ballRadius;
-        ball.velX = 0.5 * (Math.random() < 0.5 ? 1 : -1);
-        ball.velY = 0.5 * (Math.random() < 0.5 ? 1 : -1);
+        ball.velX = 0.5 * (Math.random() < 0.5 ? BALLSPEED : -1 * BALLSPEED);
+        ball.velY = 0.5 * (Math.random() < 0.5 ? BALLSPEED : -1 * BALLSPEED);
     }
     
     public static double[] ballIntersectsPaddle(
@@ -151,10 +156,32 @@ public class Main extends WebSocketServer {
 
     boolean isReset = false;
 
+    if (isBallReset) {
+        ballResetTime += dt;
+
+        if (ballResetTime >= BALL_RESET_TIME) {
+            ballResetTime = 0;
+            isBallReset = false;
+        }
+        else {
+            return;
+        }
+    }
+
     // Rebotes con paredes
     if (nextX <= ballRadius || nextX >= res - ballRadius) {
         isReset = true;
+        isBallReset = true;
         resetBall();
+
+        if (nextX <= ballRadius) {
+            clientsData.get(playersArray[1]).goalScored += 1;
+            sendGoalScored(playersArray[1]);
+        }
+        else {
+            clientsData.get(playersArray[0]).goalScored += 1;
+            sendGoalScored(playersArray[0]);
+        }
     }
     if (nextY <= ballRadius || nextY >= res - ballRadius) {
         ball.velY = -ball.velY;
@@ -419,7 +446,6 @@ public class Main extends WebSocketServer {
 
         for (Map.Entry<WebSocket, String> e : clients.snapshot().entrySet()) {
             sendSafe(e.getKey(), payload);
-            log("Countdown send to " + e.getValue());
         }
 
     }
@@ -710,6 +736,14 @@ public class Main extends WebSocketServer {
         // json.put("p1", "27 " + String.valueOf(res/2 - playerHeight));
         json.put("playerName", playerName);
         json.put("position", getNormalizedPosition(27, clientsData.get(playerName).posY)[0] + " " + getNormalizedPosition(27, clientsData.get(playerName).posY)[1]);
+
+        sendBroadCast(json.toString());
+    }
+
+    public void sendGoalScored(String playerName) {
+        JSONObject json = new JSONObject();
+        json.put(K_TYPE, "goalScored");
+        json.put("playerName", playerName);
 
         sendBroadCast(json.toString());
     }

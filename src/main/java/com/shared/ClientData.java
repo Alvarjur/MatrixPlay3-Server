@@ -6,19 +6,21 @@ public class ClientData {
     public String name;
     public String clientType;
     public double posY;
+    public int goalScored;
     
 
     public ClientData(String name, String clientType) {
         this.name = name;
         this.clientType = clientType;
         this.posY = 576/2f;
+        this.goalScored = 0;
     }
 
     public ClientData(String name, String clientType, double posY) {
         this.name = name;
         this.clientType = clientType;
         this.posY = posY;
-        
+        this.goalScored = 0;
     }
 
     @Override
@@ -41,6 +43,7 @@ public class ClientData {
 
         ClientData cd = new ClientData(name, clType);
         cd.posY = obj.optDouble("posY", 0);
+        cd.goalScored = obj.optInt("goalScored", 0);
         return cd;
     }
 }
