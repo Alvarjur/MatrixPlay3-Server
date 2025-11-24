@@ -486,7 +486,10 @@ public class Main extends WebSocketServer {
                     String name = json.getString(K_CLIENT_NAME);
                     String clientType = json.getString(K_CLIENT_TYPE);
 
-                    if (clientsData.size() >= 2) rejectPlayer();
+                    if (clientsData.size() >= 2) {
+                        rejectPlayer();
+                        return;
+                    }
 
                     clients.add(conn, name);
 
