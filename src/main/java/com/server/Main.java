@@ -98,7 +98,6 @@ public class Main extends WebSocketServer {
             long currentTime;
             long pastTime = System.nanoTime() / 1000;
             resetBall();
-            sendBallPos();
 
             while (isPlaying) {
                 currentTime = System.nanoTime() / 1000;
@@ -106,6 +105,8 @@ public class Main extends WebSocketServer {
                 pastTime = currentTime;
 
                 ballMovement(deltaTime);
+                sendBallPos();
+
                 if (player1Desktop) {
                     updatePad1(deltaTime);
                 }
@@ -232,8 +233,6 @@ public class Main extends WebSocketServer {
         ball.posX = nextX;
         ball.posY = nextY;
     }
-
-    sendBallPos();
 }
 
     public void updatePad1(double dt) {
