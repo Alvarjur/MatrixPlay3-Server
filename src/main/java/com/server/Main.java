@@ -488,6 +488,7 @@ public class Main extends WebSocketServer {
 
                     if (clientsData.size() >= 2) {
                         rejectPlayer();
+                        clients.remove(conn);
                         return;
                     }
 
