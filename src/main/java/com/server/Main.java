@@ -794,8 +794,13 @@ public class Main extends WebSocketServer {
         int g1 = clientsData.get(playersArray[0]).goalScored;
         int g2 = clientsData.get(playersArray[1]).goalScored;
 
-        if (g1 > g2) winner = playersArray[0];
-        else winner = playersArray[1];
+        if (g1> g2) {
+            winner = playersArray[0];
+            loser = playersArray[1];
+        } else {
+            winner = playersArray[1];
+            loser = playersArray[0];
+        }
 
         JSONObject json = new JSONObject();
         json.put(K_TYPE, "gameOver");
