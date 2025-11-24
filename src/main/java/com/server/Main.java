@@ -463,13 +463,32 @@ public class Main extends WebSocketServer {
     /** Elimina el client del registre i notifica la llista actualitzada. */
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        clientsData.remove(clients.nameBySocket(conn));
+
+        String name = clients.nameBySocket(conn);
+
+        if (clientsData.get(name) != null) {
+
+            String winner = clientsData.get(name).name.equals(playersArray[0])
+                        ? playersArray[1]
+                        : playersArray[0];
+
+            JSONObject json = new JSONObject();
+            json.put(K_TYPE, "gameOver");
+            json.put("winner", winner);
+            json.put("loser", clientsData.get(name).name);
+            json.put("scoreP1", clientsData.get(playersArray[0]).goalScored);
+            json.put("scoreP2", clientsData.get(playersArray[1]).goalScored);
+
+            isPlaying = false; 
+
+            clientsData.remove(clients.nameBySocket(conn));
+
+            sendBroadCast(json.toString());
+        }
+
+       
         clients.remove(conn);
         log("Client disconnected");
-        long playerCount = clientsData.values().stream()
-                .filter(cd -> !cd.clientType.equals("Raspberry"))
-                .count();
-        
     }
 
     /***** Procesa el mensaje recibido y actúa según el tipo de mensaje. *****/
