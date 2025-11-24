@@ -486,6 +486,12 @@ public class Main extends WebSocketServer {
                     String name = json.getString(K_CLIENT_NAME);
                     String clientType = json.getString(K_CLIENT_TYPE);
 
+                    if (clientsData.size() >= 2) {
+                        rejectPlayer();
+                        clients.remove(conn);
+                        return;
+                    }
+
                     clients.add(conn, name);
 
                     if (!clientType.equals("Raspberry")) {
@@ -775,7 +781,12 @@ public class Main extends WebSocketServer {
         broadcast(payload.toString());
     }
     
-
+    public void rejectPlayer() {
+        JSONObject payload = new JSONObject()
+                        .put("type", "rejectPlayer");
+        
+        broadcast(payload.toString());
+    }
    
     public void checkGameEnd() {
 
