@@ -1,3 +1,4 @@
+com/shared/Directions.class
 com/client/Main.class
 com/server/QR.class
 com/server/LoggerService.class
@@ -5,6 +6,7 @@ com/server/ControllerCountdown$1.class
 com/server/LogDataBase.class
 com/server/Main.class
 com/server/ControllerCountdown.class
+com/server/Main$1.class
 com/shared/ClientData.class
 com/server/Ball.class
 com/client/UtilsWS$1.class
