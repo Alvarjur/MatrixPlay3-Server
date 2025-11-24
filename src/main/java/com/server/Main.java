@@ -188,6 +188,7 @@ public class Main extends WebSocketServer {
             clientsData.get(playersArray[0]).goalScored += 1;
             sendGoalScored(playersArray[0]);
         }
+        checkGameEnd();
     }
     if (nextY <= ballRadius || nextY >= res - ballRadius) {
         ball.velY = -ball.velY;
@@ -597,32 +598,7 @@ public class Main extends WebSocketServer {
                     break;
 
                 case T_GOAL_SCORED:
-                    // Goal scored
                    
-                    String playerName = json.getString("playerName");  
-                    int goals = json.getInt("goals");                 
-                    ArrayList<ClientData> players = new ArrayList<>();
-                    for (ClientData cd : clientsData.values()) {
-                        if (!cd.clientType.equals("Raspberry")) {
-                            players.add(cd);
-                        }
-                    }
-
-
-                    for (ClientData p : players) {
-                        if (p.name.equals(playerName)) {
-                            p.goalScored+= goals;  
-                            System.out.println("Gol de " + p.name + "! Ahora tiene " + p.goalScored + " goles.");
-                            break;
-                        }
-                    }
-                    String player1 = players.get(0).name;
-                    String player2 = players.get(1).name;
-                    int p1Goals = players.get(0).goalScored;
-                    int p2Goals = players.get(1).goalScored;
-                  
-                    System.out.println("Marcador actualizado: " + player1 + " " + p1Goals + " - " + p2Goals + " " + player2);
-                    sendGoalScored(playerName);
 
 
                     break;
@@ -805,7 +781,9 @@ public class Main extends WebSocketServer {
 
         if (g1 >= MAX_GOALS || g2 >= MAX_GOALS) {
             isPlaying = false; 
+            announceWinner();
         }
+        
     }
 
    
@@ -822,6 +800,7 @@ public class Main extends WebSocketServer {
         JSONObject json = new JSONObject();
         json.put(K_TYPE, "gameOver");
         json.put("winner", winner);
+        json.put("loser", loser);
         json.put("scoreP1", g1);
         json.put("scoreP2", g2);
 
