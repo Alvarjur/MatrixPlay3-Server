@@ -49,6 +49,7 @@ public class Main extends WebSocketServer {
     public static double SPEED = 0.5f;
     public final static double ANDROIDSPEED = 0.1f;
     public final static double BALLSPEED = 0.5f;
+    public static double ballSpeed = 1.05f;
 
     public Ball ball = new Ball(res/2, res/2, 0, 0);
 
@@ -197,6 +198,7 @@ public class Main extends WebSocketServer {
         if (!cd.clientType.equals("Raspberry")) {
             players.add(cd);
         }
+        
     }
 
     for (int i = 0; i < players.size(); i++) {
@@ -215,6 +217,8 @@ public class Main extends WebSocketServer {
         );
 
         if (hit != null) {
+            ball.velX *= ballSpeed;
+            ball.velY *= ballSpeed;
             // Rebote horizontal
             ball.velX = -ball.velX;
 
