@@ -780,6 +780,7 @@ public class Main extends WebSocketServer {
         json.put("playerName", playerName);
 
         sendBroadCast(json.toString());
+        checkGameEnd();
         
     }
 
