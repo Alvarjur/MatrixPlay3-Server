@@ -846,6 +846,12 @@ public class Main extends WebSocketServer {
         sendBroadCast(json.toString());
 
         log("Game finished. Winner: " + winner);
+
+        for (ClientData cd : clientsData.values()) {
+            clients.remove(clients.socketByName(cd.name));
+
+        }
+        clientsData.clear();
     }
 }
 
