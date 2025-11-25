@@ -506,7 +506,7 @@ public class Main extends WebSocketServer {
                     String clientType = json.getString(K_CLIENT_TYPE);
 
                     if (clientsData.size() >= 2) {
-                        rejectPlayer();
+                        rejectPlayer(conn);
                         clients.remove(conn);
                         return;
                     }
@@ -800,11 +800,12 @@ public class Main extends WebSocketServer {
         broadcast(payload.toString());
     }
     
-    public void rejectPlayer() {
+    public void rejectPlayer(WebSocket ws) {
         JSONObject payload = new JSONObject()
                         .put("type", "rejectPlayer");
         
-        broadcast(payload.toString());
+        // broadcast(payload.toString());
+        sendSafe(ws, payload.toString());
     }
    
     public void checkGameEnd() {
